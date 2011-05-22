@@ -1,0 +1,38 @@
+splunk search
+    http
+	evented...
+	  startSearch("index=foo color=red | table *")
+	  typical node patterns for calling back...
+
+	var search = new SplunkSearch({
+	  search: "search=search source=users",
+	  timeout: 30
+	}, function(search) {
+	  search.onResults(function() {})
+	  search.onDone(function() {})
+	  ??? search.onTimeout(function() {})
+	  search.onError(function() {})
+	})
+	
+	search.perform("index=foo color=red | table *")
+	
+  search timeout? does the splunk api support this?
+
+  ...fake splunk service
+
+# new SplunkSearchJob({
+#   search: "search=search source=users"
+# }, function(searchJob){
+#   searchJob.nextResults(function(results, done){
+# 
+#   })
+# })
+
+
+
+
+
+
+
+
+
