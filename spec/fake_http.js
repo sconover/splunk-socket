@@ -4,24 +4,42 @@ exports.fakeHttpFactory = (function(){
   return {
   	urlToResponse:urlToResponse,
   	request: function(options, callback) {
-      var responseEventToEventCallback = {},
+      var responseEventToCallback = {},
           response = {
             on: function(eventName, eventCallback) {
-              responseEventToEventCallback[eventName] = eventCallback
+              responseEventToCallback[eventName] = eventCallback
             }
          	}
       
   	  callback(response)
+  	  var url = 'http://' + options.host + ':' + options.port + options.path,
+  	      response = urlToResponse[url]
+
+  	  if (typeof response == 'undefined') throw new Error('No response found for url: ' + url)
   	  
-  	  var body = urlToResponse["http://" + options.host + ":" + options.port + options.path],
-  	      halfway = parseInt(body.length/2),
-  	      firstPart = body.substring(0, halfway),
-  	      secondPart = body.substring(halfway),
-  	      dataCallNumber = 0
+  	  var body = null
+  	  if (typeof response == 'string') {
+  	    body = response
+  	  } else {
+  	    if (response.length>=1) {
+  	      body = response.shift()
+  	    } else {
+  	      throw 'No responses left in fake http for url: ' + url
+  	    }
+  	  }
+  	  
+      halfway = parseInt(body.length/2),
+      firstPart = body.substring(0, halfway),
+      secondPart = body.substring(halfway),
+      dataCallNumber = 0
       
-      responseEventToEventCallback['data'](firstPart)
-      responseEventToEventCallback['data'](secondPart)
-      responseEventToEventCallback['end']()
-  	}
+      responseEventToCallback['data'](firstPart)
+      responseEventToCallback['data'](secondPart)
+      responseEventToCallback['end']()
+      
+      return this
+  	},
+  	write: function(){},
+  	end: function(){}
   }
 })

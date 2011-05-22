@@ -28,8 +28,9 @@ splunk search
 #   })
 # })
 
-
-
+Make a fake splunk api server in node
+  use scenarios from groups of files in separate dirs
+    search=foobar goes to dir foobar and runs through the files...
 
 
 
