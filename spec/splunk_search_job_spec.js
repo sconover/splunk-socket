@@ -6,6 +6,9 @@ describe('splunk search job', function(){
     this.http = fakeHttpFactory()
   })
   
+  
+  //!! resultCount !!
+  
   it('kicks off a search job', function(){
     this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 
       "<?xml version='1.0' encoding='UTF-8'?>\n" +
@@ -16,19 +19,21 @@ describe('splunk search job', function(){
     
     this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'] = []
     this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
-      push(jobResponseXml({isDone:0}))
+      push(jobResponseXml({isDone:0, resultCount:2}))
 
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567/results?output_mode=json&offset=3'] =
+    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567/results?output_mode=json&offset=2'] =
       '[' + resultJson({color:'blue'}) + ']'
     
     this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
-      push(jobResponseXml({isDone:1}))
+      push(jobResponseXml({isDone:1, resultCount:3}))
     
     var allResults = [],
         done = false
     new SplunkSearchJob({
       http: this.http,
-      host: "splunk.example.com",
+      user: 'admin',
+      password: 'pass',
+      host: 'splunk.example.com',
       port: 8089,
       search: "source=cars color=red | head 10"
     }, function(searchJob){

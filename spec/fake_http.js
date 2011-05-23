@@ -40,6 +40,7 @@ exports.fakeHttpFactory = (function(){
       return this
   	},
   	write: function(){},
+  	setHeader: function(){},
   	end: function(){}
   }
 })

@@ -1,42 +1,53 @@
 var QueryString = require("querystring")
 
-function simplePOST(http, options, responseBodyCallback) {
+function simpleRequest(http, options, requestConfigCallback, responseBodyCallback) {
   var responseBody = ''
   var request = http.request({
     host: options.host, 
     port: options.port, 
     path: options.path,
-    method: 'POST'
+    method: options.method
   }, function(response){
     response.on('data', function(chunk){ responseBody = responseBody + chunk })
     response.on('end',       function(){ responseBodyCallback(responseBody) })
   })
-  request.write(QueryString.stringify(options.params))
-  request.end()
+  var auth = 'Basic ' + new Buffer(options.user + ':' + options.password).toString('base64');
+  request.setHeader('Authorization', auth)
+  requestConfigCallback(request)
+  request.end()  
+}
+
+function simplePOST(http, options, responseBodyCallback) {
+  options.method = 'POST'
+  simpleRequest(http, 
+                options, 
+                function(request){ 
+                  var postBody = QueryString.stringify(options.params)
+                  request.setHeader('Content-Length', "" + postBody.length)
+                  request.write(postBody) 
+                }, 
+                responseBodyCallback)  
 }
 
 function simpleGET(http, options, responseBodyCallback) {
-  var responseBody = ''
-  var request = http.request({
-    host: options.host, 
-    port: options.port, 
-    path: options.path,
-    method: 'GET'
-  }, function(response){
-    response.on('data', function(chunk){ responseBody = responseBody + chunk })
-    response.on('end',       function(){ responseBodyCallback(responseBody) })
-  })
-  request.end()
+  options.method = 'GET'
+  simpleRequest(http, 
+                options, 
+                function(){}, 
+                responseBodyCallback)
 }
 
 function createJob(http, requestInfo, callback) {
   simplePOST(
     http,
-    {host: requestInfo.host, 
+    {user: requestInfo.user, 
+     password: requestInfo.password, 
+     host: requestInfo.host, 
      port: requestInfo.port, 
      path: '/services/search/jobs',
      params:{
-       search: requestInfo.search, 
+       search: 'search ' + requestInfo.search, 
+       max_count: "" + (requestInfo.max_count || 100),
        required_field_list:"*" //forces splunk to output k-v pair style
                                //see http://splunk-base.splunk.com/answers/24551/structured-fields-and-values-in-json-api-results
      }},
@@ -50,41 +61,64 @@ function createJob(http, requestInfo, callback) {
   )
 }
 
-function checkWhetherJobIsDone(http, requestInfo, jobId, callback) {
+function checkWhetherWeHaveAllResults(http, requestInfo, jobId, resultsOffset, callback) {
   simpleGET(
     http, 
-    {host: requestInfo.host, 
+    {user: requestInfo.user, 
+     password: requestInfo.password,
+     host: requestInfo.host, 
      port: requestInfo.port, 
      path: '/services/search/jobs/' + jobId},
-    function(responseBody) { callback(responseBody.indexOf('"isDone">1</') >= 0) })
+    function(responseBody) { 
+      var done = responseBody.indexOf('"isDone">1</') >= 0
+      var getResultCountRegexp = /name="resultCount">(.*?)<\/s:key>/,
+          match = getResultCountRegexp.exec(responseBody),
+          resultCount = parseInt(match[1])
+      callback(done && resultsOffset >= resultCount) 
+    })
 }
 
 function fetchJsonResultsForJob(http, requestInfo, jobId, resultsOffset, nextResultsCallback, doneCallback) {
   simpleGET(
     http, 
-    {host: requestInfo.host, 
+    {user: requestInfo.user, 
+     password: requestInfo.password,
+     host: requestInfo.host, 
      port: requestInfo.port, 
      path: '/services/search/jobs/' + jobId + '/results?output_mode=json&offset=' + resultsOffset},
     function(responseBody) {
-      var results = JSON.parse(responseBody)
-      nextResultsCallback(results)
-      checkWhetherJobIsDone(http, requestInfo, jobId, function(done){
-        if (done) {
-          doneCallback()
-        } else {
+      if (responseBody) {
+        var results = JSON.parse(responseBody)
+        nextResultsCallback(results)
+        var adjustedResultsOffset = resultsOffset + results.length
+        checkWhetherWeHaveAllResults(http, requestInfo, jobId, adjustedResultsOffset, function(done){
+          if (done) {
+            doneCallback()
+          } else {
+            fetchJsonResultsForJob(http, 
+                                   requestInfo, 
+                                   jobId, 
+                                   adjustedResultsOffset, 
+                                   nextResultsCallback, 
+                                   doneCallback)
+          }
+        })        
+      } else {
+        setTimeout(function() {
           fetchJsonResultsForJob(http, 
                                  requestInfo, 
                                  jobId, 
-                                 resultsOffset + results.length + 1, 
+                                 resultsOffset, 
                                  nextResultsCallback, 
-                                 doneCallback)
-        }
-      })
+                                 doneCallback)          
+        }, 500)
+      }
+      
     })
 }
 
 exports.SplunkSearchJob = function(requestInfo, configCallback) {
-  var http = requestInfo.http || require("http")
+  var http = requestInfo.http || require("https")
   delete requestInfo.http
   
   var nextResultsCallback = function(){}
