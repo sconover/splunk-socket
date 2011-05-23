@@ -20,7 +20,7 @@ splunk search
 
   ...fake splunk service
 
-# new SplunkSearchJob({
+# new SplunkSearch({
 #   search: "search=search source=users"
 # }, function(searchJob){
 #   searchJob.nextResults(function(results, done){

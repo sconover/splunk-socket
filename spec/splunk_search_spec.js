@@ -1,5 +1,5 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
-var SplunkSearchJob = require('../splunk_search_job').SplunkSearchJob
+var SplunkSearch = require('../splunk_search').SplunkSearch
 
 describe('splunk search job', function(){
   beforeEach(function(){
@@ -10,6 +10,10 @@ describe('splunk search job', function(){
     //use spies?
     //assert stuff posted to create job
     //assert auth (url + headers)
+  
+  // it('posts a search job', function(){
+  //   spyOn(this.fakeHttp)
+  // })
   
   it('kicks off a search job', function(){
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 
@@ -29,16 +33,16 @@ describe('splunk search job', function(){
     
     var allResults = [],
         done = false
-    new SplunkSearchJob({
+    new SplunkSearch({
       http: this.fakeHttp,
       user: 'admin',
       password: 'pass',
       host: 'splunk.example.com',
       port: 8089,
       search: "source=cars color=red | head 10"
-    }, function(searchJob){
-      searchJob.onNextResults(  function(results){ allResults.push.apply(allResults, results) })
-      searchJob.onDone(         function()       { done = true })
+    }, function(search){
+      search.onNextResults(  function(results){ allResults.push.apply(allResults, results) })
+      search.onDone(         function()       { done = true })
     }).run()
     
     expect(allResults).toEqual([{color:'red'}, {color:'green'}, {color:'blue'}])
