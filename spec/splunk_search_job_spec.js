@@ -3,34 +3,34 @@ var SplunkSearchJob = require('../splunk_search_job').SplunkSearchJob
 
 describe('splunk search job', function(){
   beforeEach(function(){
-    this.http = fakeHttpFactory()
+    this.fakeHttp = fakeHttpFactory()
   })
   
-  
-  //!! resultCount !!
+  //todo:
+    //use spies?
+    //assert stuff posted to create job
+    //assert auth (url + headers)
   
   it('kicks off a search job', function(){
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 
       "<?xml version='1.0' encoding='UTF-8'?>\n" +
       "<response><sid>1234.567</sid></response>"
     
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567/results?output_mode=json&offset=0'] =
-      '[' + resultJson({color:'red'}) + ',' + resultJson({color:'green'}) + ']'
+    loadResultsForOffset(this.fakeHttp, 0, [{color:'red'}, {color:'green'}])
     
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'] = []
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'] = []
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
       push(jobResponseXml({isDone:0, resultCount:2}))
 
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567/results?output_mode=json&offset=2'] =
-      '[' + resultJson({color:'blue'}) + ']'
+    loadResultsForOffset(this.fakeHttp, 2, [{color:'blue'}])
     
-    this.http.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
       push(jobResponseXml({isDone:1, resultCount:3}))
     
     var allResults = [],
         done = false
     new SplunkSearchJob({
-      http: this.http,
+      http: this.fakeHttp,
       user: 'admin',
       password: 'pass',
       host: 'splunk.example.com',
@@ -63,6 +63,15 @@ describe('splunk search job', function(){
             '    </s:dict>',
             '  </content>',
             '</entry>'].join("\n")
+  }
+  
+  function loadResultsForOffset(fakeHttp, offset, results) {
+    var resultJsons = []
+    for(var i=0; i<results.length; i++) { resultJsons[i] = resultJson(results[i]) }
+    
+    fakeHttp.urlToResponse['http://splunk.example.com:8089' +
+                           '/services/search/jobs/1234.567/results' +
+                           '?output_mode=json&offset=' + offset] = '[' + resultJsons.join(',') + ']'
   }
   
   function resultJson(entries) {
