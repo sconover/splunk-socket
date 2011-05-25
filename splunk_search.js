@@ -16,8 +16,8 @@ function simpleRequest(http, options, requestConfigCallback, responseBodyCallbac
     response.on('data', function(chunk){ responseBody = responseBody + chunk })
     response.on('end',       function(){ responseBodyCallback(responseBody) })
   })
-  var auth = 'Basic ' + new Buffer(options.user + ':' + options.password).toString('base64');
-  request.setHeader('Authorization', auth)
+  request.setHeader('Authorization', 
+                    'Basic ' + new Buffer(options.user + ':' + options.password).toString('base64'))
   requestConfigCallback(request)
   request.end()  
 }
@@ -43,14 +43,16 @@ function simpleGET(http, options, responseBodyCallback) {
 }
 
 exports.SplunkSearchJob = function(http, requestInfo) {
-  var jobId = null,
-      basicSplunkHttpOptions = {
+  var basicSplunkHttpOptions = {
         user: requestInfo.user, 
         password: requestInfo.password, 
         host: requestInfo.host, 
         port: requestInfo.port
       }
+  this._jobId = null
+  
   this.create = function(gotJobIdCallback) {
+    var self = this
     simplePOST(
       http,
       extend({
@@ -66,13 +68,13 @@ exports.SplunkSearchJob = function(http, requestInfo) {
         var getJobIdRegexp = /\<sid\>(.*?)\<\/sid\>/,
             match = getJobIdRegexp.exec(responseBody)
         
-        jobId = match[1]
-        gotJobIdCallback(jobId)
+        self._jobId = match[1]
+        gotJobIdCallback(self._jobId)
       }
     )
   }
   
-  function checkWhetherWeHaveAllResults(resultsOffset, callback) {
+  function checkWhetherWeHaveAllResults(jobId, resultsOffset, callback) {
     simpleGET(
       http, 
       extend({path: '/services/search/jobs/' + jobId}, basicSplunkHttpOptions),
@@ -86,25 +88,27 @@ exports.SplunkSearchJob = function(http, requestInfo) {
     )    
   }
   
-  this.fetchJsonResultsForJob = function again(nextResultsCallback, doneCallback, resultsOffset) {
+  this.fetchJsonResultsForJob = function(nextResultsCallback, doneCallback, resultsOffset) {
     resultsOffset = resultsOffset || 0
+    var self = this
     simpleGET(
       http, 
-      extend({path: '/services/search/jobs/' + jobId + '/results?output_mode=json&offset=' + resultsOffset},
+      extend({path: '/services/search/jobs/' + self._jobId + '/results?output_mode=json&offset=' + resultsOffset},
              basicSplunkHttpOptions),
       function(responseBody) {
         if (responseBody) {
           var results = JSON.parse(responseBody)
           nextResultsCallback(results)
           var adjustedResultsOffset = resultsOffset + results.length
-          checkWhetherWeHaveAllResults(adjustedResultsOffset, function(done){
+          checkWhetherWeHaveAllResults(self._jobId, adjustedResultsOffset, function(done){
             if (done) {
               doneCallback()
             } else {
-              again(nextResultsCallback, doneCallback, adjustedResultsOffset)
+              self.fetchJsonResultsForJob(nextResultsCallback, doneCallback, adjustedResultsOffset)
             }
           })        
         } else {
+          throw new Error("no results. test-drive changes to handle this.")
           // setTimeout(function() {
           //   again(nextResultsCallback, doneCallback, adjustedResultsOffset)          
           // }, 500)

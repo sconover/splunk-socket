@@ -6,11 +6,6 @@ describe('splunk search job', function(){
     this.fakeHttp = fakeHttpFactory()
   })
   
-  //todo:
-    //use spies?
-    //assert stuff posted to create job
-    //assert auth (url + headers)
-  
   it('posts a search job', function(){
     var http = this.fakeHttp,
         httpRequestSpy = spyOn(http, 'request').andCallFake(function() {return http}),
@@ -23,6 +18,7 @@ describe('splunk search job', function(){
                 port: 8089
               })
     job.create(function(){})
+
     expect(httpRequestSpy.mostRecentCall.args[0]).toEqual({
       path : '/services/search/jobs',
       host: "splunk.example.com",
@@ -31,7 +27,35 @@ describe('splunk search job', function(){
     })
     
     expect(httpHeaderSpy.argsForCall[0]).toEqual(
+      ['Authorization', 'Basic ' + new Buffer('bob:pass').toString('base64')]
+    )
+  })
+    
+  it('fetches json results for a job', function(){
+    var http = this.fakeHttp,
+        httpRequestSpy = spyOn(http, 'request').andCallFake(function() {return http}),
+        httpHeaderSpy = spyOn(http, 'setHeader').andCallThrough()
+    
+    var job = new SplunkSearchJob(http, {
+                user: "bob",
+                password: "pass",
+                host: "splunk.example.com",
+                port: 8089
+              })
+    job._jobId = "1234.567"    
+    job.fetchJsonResultsForJob(function(){}, function(){})
+    
+    expect(httpRequestSpy.mostRecentCall.args[0]).toEqual({
+      path : '/services/search/jobs/1234.567/results?output_mode=json&offset=0',
+      host: "splunk.example.com",
+      port: 8089,
+      method: 'GET'
+    })
+    
+    expect(httpHeaderSpy.argsForCall[0]).toEqual(
       ['Authorization', 'Basic ' + new Buffer('bob:pass').toString('base64')])
   })
+  
+  
   
 })
