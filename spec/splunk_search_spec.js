@@ -1,19 +1,10 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
 var SplunkSearch = require('../splunk_search').SplunkSearch
 
-describe('splunk search job', function(){
+describe('splunk search', function(){
   beforeEach(function(){
     this.fakeHttp = fakeHttpFactory()
   })
-  
-  //todo:
-    //use spies?
-    //assert stuff posted to create job
-    //assert auth (url + headers)
-  
-  // it('posts a search job', function(){
-  //   spyOn(this.fakeHttp)
-  // })
   
   it('kicks off a search job', function(){
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 

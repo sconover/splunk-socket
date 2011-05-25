@@ -42,7 +42,7 @@ function simpleGET(http, options, responseBodyCallback) {
                 responseBodyCallback)
 }
 
-var SplunkSearchJob = function(http, requestInfo) {
+exports.SplunkSearchJob = function(http, requestInfo) {
   var jobId = null,
       basicSplunkHttpOptions = {
         user: requestInfo.user, 
@@ -131,7 +131,7 @@ exports.SplunkSearch = function(requestInfo, configCallback) {
   this.run = function(){
     var resultsOffset = 0
     
-    var job = new SplunkSearchJob(http, requestInfo)    
+    var job = new exports.SplunkSearchJob(http, requestInfo)    
     job.create(function(jobId){ job.fetchJsonResultsForJob(nextResultsCallback, doneCallback) })
                 // 
                 // 
