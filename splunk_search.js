@@ -62,27 +62,7 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
         self._jobId = match[1]
         gotJobIdCallback(self._jobId)      
       }
-    )
-    
-    // simplePOST(
-    //   http,
-    //   extend({
-    //     path: '/services/search/jobs',
-    //     params:{
-    //       search: 'search ' + requestInfo.search, 
-    //       max_count: "" + (requestInfo.max_count || 100),
-    //       required_field_list:"*" //forces splunk to output k-v pair style
-    //                                //see http://splunk-base.splunk.com/answers/24551/structured-fields-and-values-in-json-api-results
-    //     } 
-    //   }, basicSplunkHttpOptions),
-    //   function(responseBody){
-    //     var getJobIdRegexp = /\<sid\>(.*?)\<\/sid\>/,
-    //         match = getJobIdRegexp.exec(responseBody)
-    //     
-    //     self._jobId = match[1]
-    //     gotJobIdCallback(self._jobId)
-    //   }
-    // )
+    )    
   }
   
   function checkWhetherWeHaveAllResults(jobId, resultsOffset, callback) {
@@ -95,17 +75,6 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
             resultCount = parseInt(match[1])
         callback(done && resultsOffset >= resultCount) 
       })
-    // simpleGET(
-    //   http, 
-    //   extend({path: '/services/search/jobs/' + jobId}, basicSplunkHttpOptions),
-    //   function(responseBody) { 
-    //     var done = responseBody.indexOf('"isDone">1</') >= 0
-    //     var getResultCountRegexp = /name="resultCount">(.*?)<\/s:key>/,
-    //         match = getResultCountRegexp.exec(responseBody),
-    //         resultCount = parseInt(match[1])
-    //     callback(done && resultsOffset >= resultCount) 
-    //   }
-    // )    
   }
   
   this.fetchJsonResultsForJob = function(nextResultsCallback, doneCallback, resultsOffset) {
@@ -135,31 +104,6 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
         }
 
       })
-
-    // simpleGET(
-    //   http, 
-    //   extend({path: '/services/search/jobs/' + self._jobId + '/results?output_mode=json&offset=' + resultsOffset},
-    //          basicSplunkHttpOptions),
-    //   function(responseBody) {
-    //     if (responseBody) {
-    //       var results = JSON.parse(responseBody)
-    //       nextResultsCallback(results)
-    //       var adjustedResultsOffset = resultsOffset + results.length
-    //       checkWhetherWeHaveAllResults(self._jobId, adjustedResultsOffset, function(done){
-    //         if (done) {
-    //           doneCallback()
-    //         } else {
-    //           self.fetchJsonResultsForJob(nextResultsCallback, doneCallback, adjustedResultsOffset)
-    //         }
-    //       })        
-    //     } else {
-    //       throw new Error("no results. test-drive changes to handle this.")
-    //       // setTimeout(function() {
-    //       //   again(nextResultsCallback, doneCallback, adjustedResultsOffset)          
-    //       // }, 500)
-    //     }
-    // 
-    //   })
   }
   
   
@@ -191,14 +135,5 @@ exports.SplunkSearch = function(requestInfo, configCallback) {
     
     var job = new exports.SplunkSearchJob(splunkHttp, requestInfo)    
     job.create(function(jobId){ job.fetchJsonResultsForJob(nextResultsCallback, doneCallback) })
-                // 
-                // 
-                // fetchJsonResultsForJob(http, 
-                //                                       requestInfo, 
-                //                                       jobId, 
-                //                                       resultsOffset, 
-                //                                       nextResultsCallback, 
-                //                                       doneCallback) }
-    // )
   }
 }
