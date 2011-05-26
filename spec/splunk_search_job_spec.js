@@ -53,9 +53,45 @@ describe('splunk search job', function(){
       var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
       var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
       job._jobId = "1234.567"    
-      job.checkWhetherWeHaveAllResults(function(){}, 7)
+      job.checkWhetherWeHaveAllResults(7, function(){})
       
       expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567')
+    })
+
+    it('is not finished if isDone != 1, even if the offset is > the result count', function(){
+      var splunkHttpSpy = 
+        spyOn(this.splunkHttp, 'get').
+          andCallFake(function(url, responseBodyCallback) {
+            responseBodyCallback("<foo>\n<s:key name=\"isDone\">0</s:key>\n<s:key name=\"resultCount\">5</s:key>\n</foo>")
+          })
+      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+      job._jobId = "1234.567"    
+      job.checkWhetherWeHaveAllResults(7, 
+        function(weHaveAllResults) { expect(weHaveAllResults).toEqual(false) })
+    })
+
+    it('is not finished if isDone = 1, but the offset is < the result count', function(){
+      var splunkHttpSpy = 
+        spyOn(this.splunkHttp, 'get').
+          andCallFake(function(url, responseBodyCallback) {
+            responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
+          })
+      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+      job._jobId = "1234.567"    
+      job.checkWhetherWeHaveAllResults(7, 
+        function(weHaveAllResults) { expect(weHaveAllResults).toEqual(false) })
+    })
+
+    it('is finished if isDone = 1 and the offset is = the result count', function(){
+      var splunkHttpSpy = 
+        spyOn(this.splunkHttp, 'get').
+          andCallFake(function(url, responseBodyCallback) {
+            responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
+          })
+      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+      job._jobId = "1234.567"    
+      job.checkWhetherWeHaveAllResults(7, 
+        function(weHaveAllResults) { expect(weHaveAllResults).toEqual(true) })
     })
   })  
   
