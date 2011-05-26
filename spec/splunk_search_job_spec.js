@@ -48,4 +48,15 @@ describe('splunk search job', function(){
     })
   })
   
+  describe('checking whether we have all the results for an existing search job', function(){
+    it('requests job status', function(){
+      var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
+      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+      job._jobId = "1234.567"    
+      job.checkWhetherWeHaveAllResults(function(){}, 7)
+      
+      expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567')
+    })
+  })  
+  
 })

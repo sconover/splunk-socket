@@ -65,9 +65,9 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
     )    
   }
   
-  function checkWhetherWeHaveAllResults(jobId, resultsOffset, callback) {
+  this.checkWhetherWeHaveAllResults = function(resultsOffset, callback) {
     splunkHttp.get(
-      '/services/search/jobs/' + jobId, 
+      '/services/search/jobs/' + this._jobId, 
       function(responseBody) { 
         var done = responseBody.indexOf('"isDone">1</') >= 0
         var getResultCountRegexp = /name="resultCount">(.*?)<\/s:key>/,
@@ -78,18 +78,16 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
   }
   
   this.fetchJsonResultsForJob = function(nextResultsCallback, doneCallback, resultsOffset) {
-    resultsOffset = resultsOffset || 0
     var self = this
-
-
+    resultsOffset = resultsOffset || 0
     splunkHttp.get(
-      '/services/search/jobs/' + self._jobId + '/results?output_mode=json&offset=' + resultsOffset, 
+      '/services/search/jobs/' + this._jobId + '/results?output_mode=json&offset=' + resultsOffset, 
       function(responseBody) {
         if (responseBody) {
           var results = JSON.parse(responseBody)
           nextResultsCallback(results)
           var adjustedResultsOffset = resultsOffset + results.length
-          checkWhetherWeHaveAllResults(self._jobId, adjustedResultsOffset, function(done){
+          self.checkWhetherWeHaveAllResults(adjustedResultsOffset, function(done){
             if (done) {
               doneCallback()
             } else {
