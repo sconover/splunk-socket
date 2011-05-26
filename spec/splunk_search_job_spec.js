@@ -27,24 +27,56 @@ describe('splunk search job', function(){
   })
   
   describe('fetching results for an existing search job', function(){
-    it('makes a call to get results for the job', function(){
-      var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
     
-      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
-      job._jobId = "1234.567"    
-      job.fetchJsonResultsForJob(function(){}, function(){})
+    describe('requesting results', function(){
+      it('makes a call to get results for the job', function(){
+        var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
+    
+        var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+        job._jobId = "1234.567"    
+        job.fetchJsonResultsForJob(function(){}, function(){})
 
-      expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567/results?output_mode=json&offset=0')
+        expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567/results?output_mode=json&offset=0')
+      })
+    
+      it('makes a call with the incremented offset to get more results', function(){
+        var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
+    
+        var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+        job._jobId = "1234.567"    
+        job.fetchJsonResultsForJob(function(){}, function(){}, 7)
+
+        expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567/results?output_mode=json&offset=7')
+      })
     })
     
-    it('makes a call with the incremented offset to get more results', function(){
-      var splunkHttpSpy = spyOn(this.splunkHttp, 'get').andCallFake(function() {})
     
-      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
-      job._jobId = "1234.567"    
-      job.fetchJsonResultsForJob(function(){}, function(){}, 7)
+    describe('getting results', function(){
+      it("returns next results, calls back. not all results have arrived yet.", function(){
+        var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+        job.checkWhetherWeHaveAllResults = function(offsetNotImportant, allResultsCallback){
+          allResultsCallback(false)
+        }
 
-      expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567/results?output_mode=json&offset=7')
+        var splunkHttpSpy = spyOn(this.splunkHttp, 'get').
+          andCallFake(function(path, responseBodyCallback) {
+            if (path.indexOf("results")>=0) {
+              responseBodyCallback('[{"a":"101","b":"102"}, {"a":"201","b":"202"}]')
+            } else {
+              responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">2</s:key>\n</foo>")
+            }
+            
+          })
+    
+        var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
+        job._jobId = "1234.567"    
+        job.fetchJsonResultsForJob(function(results){
+          expect(results).toEqual([{a:"101",b:"102"}, {a:"201",b:"202"}])
+        }, function(done){
+          expect(done).toEqual(true)
+        }, 
+        0)
+      })
     })
     
     //todo: fake out checkWhetherWeHaveAllResults, 

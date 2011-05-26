@@ -89,7 +89,7 @@ exports.SplunkSearchJob = function(splunkHttp, requestInfo) {
           var adjustedResultsOffset = resultsOffset + results.length
           self.checkWhetherWeHaveAllResults(adjustedResultsOffset, function(done){
             if (done) {
-              doneCallback()
+              doneCallback(true)
             } else {
               self.fetchJsonResultsForJob(nextResultsCallback, doneCallback, adjustedResultsOffset)
             }
