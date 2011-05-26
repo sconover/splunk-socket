@@ -1,5 +1,6 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
 var SplunkHttp = require('../splunk_search').SplunkHttp
+var QueryString = require("querystring")
 
 describe('splunk http', function(){
   beforeEach(function(){
@@ -35,6 +36,7 @@ describe('splunk http', function(){
   it('executes a proper POST', function(){
     var http = this.fakeHttp,
         httpRequestSpy = spyOn(http, 'request').andCallFake(function() {return http}),
+        httpWriteSpy = spyOn(http, 'write').andCallThrough(),
         httpHeaderSpy = spyOn(http, 'setHeader').andCallThrough()
   
     var splunkHttp = new SplunkHttp(http, {
@@ -52,9 +54,15 @@ describe('splunk http', function(){
       method: 'POST'
     })
   
+    expect(httpWriteSpy.mostRecentCall.args[0]).toEqual(QueryString.stringify({a:"1", b:"2"}))
+  
     expect(httpHeaderSpy.argsForCall[0]).toEqual(
       ['Authorization', 'Basic ' + new Buffer('bob:pass').toString('base64')]
     )
+    expect(httpHeaderSpy.argsForCall[1]).toEqual(
+      ['Content-Length', '' + QueryString.stringify({a:"1", b:"2"}).length]
+    )
+
   })
   
   
