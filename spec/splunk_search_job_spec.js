@@ -46,6 +46,9 @@ describe('splunk search job', function(){
 
       expect(splunkHttpSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs/1234.567/results?output_mode=json&offset=7')
     })
+    
+    //todo: fake out checkWhetherWeHaveAllResults, 
+      //test nextResultsCallback and doneCallback 
   })
   
   describe('checking whether we have all the results for an existing search job', function(){
@@ -76,8 +79,7 @@ describe('splunk search job', function(){
           andCallFake(function(url, responseBodyCallback) {
             responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
           })
-      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
-      job._jobId = "1234.567"    
+      var job = new SplunkSearchJob(this.splunkHttp, {})  
       job.checkWhetherWeHaveAllResults(7, 
         function(weHaveAllResults) { expect(weHaveAllResults).toEqual(false) })
     })
@@ -88,8 +90,7 @@ describe('splunk search job', function(){
           andCallFake(function(url, responseBodyCallback) {
             responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
           })
-      var job = new SplunkSearchJob(this.splunkHttp, {search:"foo"})
-      job._jobId = "1234.567"    
+      var job = new SplunkSearchJob(this.splunkHttp, {})
       job.checkWhetherWeHaveAllResults(7, 
         function(weHaveAllResults) { expect(weHaveAllResults).toEqual(true) })
     })
