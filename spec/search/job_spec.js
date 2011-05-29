@@ -5,11 +5,11 @@ var Job = require('../../lib/splunk-socket/search/job')
 describe('splunk search job', function(){
   beforeEach(function(){
     this.apiClient = new ApiClient(fakeHttpFactory(), {
-                            user: "bob",
-                            password: "pass",
-                            host: "splunk.example.com",
-                            port: 8089
-                          })
+                           user: "bob",
+                           password: "pass",
+                           host: "splunk.example.com",
+                           port: 8089
+                         })
   })
   
   
@@ -22,6 +22,30 @@ describe('splunk search job', function(){
 
       expect(apiClientSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs')
       expect(apiClientSpy.mostRecentCall.args[1].search).toEqual('search source=foo | head 1')
+    })
+
+    it('passes through other params to the splunk search', function(){
+      var apiClientSpy = spyOn(this.apiClient, 'post').andCallFake(function() {})
+    
+      var job = new Job(this.apiClient, {search:"source=foo | head 1", 
+                                         max_count:277})
+      job.create(function(){})
+      
+      var postedSearchOptions = apiClientSpy.mostRecentCall.args[1]
+      expect(postedSearchOptions.search).toEqual('search source=foo | head 1')
+      expect(postedSearchOptions.max_count).toEqual(277)
+    })
+
+    it('turns arrays into comma separated lists', function(){
+      var apiClientSpy = spyOn(this.apiClient, 'post').andCallFake(function() {})
+    
+      var job = new Job(this.apiClient, {search:"source=foo | head 1", 
+                                         required_field_list:['color', 'model']})
+      job.create(function(){})
+      
+      var postedSearchOptions = apiClientSpy.mostRecentCall.args[1]
+      expect(postedSearchOptions.search).toEqual('search source=foo | head 1')
+      expect(postedSearchOptions.required_field_list).toEqual('color,model')
     })
   })
   
