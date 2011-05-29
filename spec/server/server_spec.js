@@ -1,4 +1,4 @@
-var SplunkSearchServer = require('../../lib/splunk-socket/server')
+var Server = require('../../lib/splunk-socket/server')
 
 describe('splunk search server', function(){
 
@@ -27,7 +27,7 @@ describe('splunk search server', function(){
   it('executes a splunk search based on the json-serialized search received from the client', function(){
     var fakeRawSocket = new FakeRawSocket()
     var server = 
-      new SplunkSearchServer({
+      new Server({
         user: 'admin',
         password: 'pass',
         host: 'splunk.example.com',
@@ -54,7 +54,7 @@ describe('splunk search server', function(){
   
   it('sends results of the search to the client as they come in', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var server = new SplunkSearchServer({}, fakeRawSocket)
+    var server = new Server({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
@@ -81,7 +81,7 @@ describe('splunk search server', function(){
 
   it('disconnects the client when the search is done', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var server = new SplunkSearchServer({}, fakeRawSocket)
+    var server = new Server({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     

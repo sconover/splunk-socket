@@ -1,11 +1,24 @@
+- max_count (or, auto_finalize_ec?) is less than the result count. call done
+ - consider sending reasons for done (max_count hit)
+- server should be resilient. trap and print errors
+- terminate/delete the splunk search job on client disconnect
+  ...in all cases...delete the job on finished too?
+  ...resilient...what if the job is gone already?
+- default job max_time alongside max_count
+ - when the job finished because of timeout, send that down in done description
+- allow other splunk api search params to be passed through
+ - just convert from json to url params
+
+...IOW, establish time and 'bandwidth' box
+  point to the REST api docs on search POST in the readme...
+
 splunk search
 	  ??? search.onTimeout(function() {})
 	  search.onError(function() {})
       search timeout? does the splunk api support this?
       
-terminate the splunk search on client disconnect
-
 extract "extend"
+  use options?
 
 get jasmine out of vendor. claim the node js name and do a proper npm dependency
 

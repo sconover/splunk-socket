@@ -1,5 +1,5 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
-var SplunkSearch = require('../../../lib/splunk-socket/server/search')
+var Search = require('../../../lib/splunk-socket/server/search')
 
 describe('splunk search', function(){
   beforeEach(function(){
@@ -24,7 +24,7 @@ describe('splunk search', function(){
     
     var allResults = [],
         done = false
-    new SplunkSearch({
+    new Search({
       http: this.fakeHttp,
       user: 'admin',
       password: 'pass',
