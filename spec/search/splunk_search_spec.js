@@ -1,5 +1,5 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
-var Search = require('../../../lib/splunk-socket/search')
+var Search = require('../../lib/splunk-socket/search')
 
 describe('splunk search', function(){
   beforeEach(function(){

@@ -1,5 +1,5 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
-var ApiClient = require('../../../lib/splunk-socket/search/api-client')
+var ApiClient = require('../../lib/splunk-socket/search/api-client')
 var QueryString = require("querystring")
 
 describe('splunk http', function(){

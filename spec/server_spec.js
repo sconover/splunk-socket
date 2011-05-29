@@ -1,4 +1,4 @@
-var Server = require('../../lib/splunk-socket/server')
+var Server = require('../lib/splunk-socket/server')
 
 describe('splunk search server', function(){
 
