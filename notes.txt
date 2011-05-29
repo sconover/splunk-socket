@@ -2,6 +2,8 @@ splunk search
 	  ??? search.onTimeout(function() {})
 	  search.onError(function() {})
       search timeout? does the splunk api support this?
+      
+terminate the splunk search on client disconnect
 
 extract "extend"
 

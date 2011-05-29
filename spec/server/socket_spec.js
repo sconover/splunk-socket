@@ -54,13 +54,7 @@ describe('splunk server socket', function(){
   
   it('sends results of the search to the client as they come in', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var splunkSocket = 
-      new SplunkServerSocket({
-        user: 'admin',
-        password: 'pass',
-        host: 'splunk.example.com',
-        port: 8089
-      }, fakeRawSocket)
+    var splunkSocket = new SplunkServerSocket({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(splunkSocket, 'runSplunkSearch').andCallFake(function() {return {}})
     
@@ -73,14 +67,34 @@ describe('splunk server socket', function(){
     onNextResultsCallback([{color:'red'},{color:'blue'}])
     
     expect(fakeClient.sent).toEqual([
-      [{color:'red'},{color:'blue'}]
+      {results:[{color:'red'},{color:'blue'}]}
     ])
     
     onNextResultsCallback([{color:'green'}])
 
     expect(fakeClient.sent).toEqual([
-      [{color:'red'},{color:'blue'}],
-      [{color:'green'}]
+      {results:[{color:'red'},{color:'blue'}]},
+      {results:[{color:'green'}]}
+    ])
+
+  })
+
+  it('disconnects the client when the search is done', function(){
+    var fakeRawSocket = new FakeRawSocket()
+    var splunkSocket = new SplunkServerSocket({}, fakeRawSocket)
+    
+    var splunkSearchSpy = spyOn(splunkSocket, 'runSplunkSearch').andCallFake(function() {return {}})
+    
+    var fakeClient = new FakeClient()
+    fakeRawSocket.connection(fakeClient)
+    
+    fakeClient.message(JSON.stringify({search: "source=cars | head 100"}))
+    
+    var onDoneCallback = splunkSearchSpy.mostRecentCall.args[2]
+    onDoneCallback()
+    
+    expect(fakeClient.sent).toEqual([
+      {done:true}
     ])
 
   })
