@@ -1,6 +1,6 @@
-var SplunkServerSocket = require('../../lib/splunk-socket/server/socket')
+var SplunkSearchServer = require('../../lib/splunk-socket/server')
 
-describe('splunk server socket', function(){
+describe('splunk search server', function(){
 
   var FakeClient = function(){
     var eventHandlers = {}
@@ -26,15 +26,15 @@ describe('splunk server socket', function(){
   
   it('executes a splunk search based on the json-serialized search received from the client', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var splunkSocket = 
-      new SplunkServerSocket({
+    var server = 
+      new SplunkSearchServer({
         user: 'admin',
         password: 'pass',
         host: 'splunk.example.com',
         port: 8089
       }, fakeRawSocket)
     
-    var splunkSearchSpy = spyOn(splunkSocket, 'runSplunkSearch').andCallFake(function() {return {}})
+    var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
     var fakeClient = new FakeClient()
     fakeRawSocket.connection(fakeClient)
@@ -54,9 +54,9 @@ describe('splunk server socket', function(){
   
   it('sends results of the search to the client as they come in', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var splunkSocket = new SplunkServerSocket({}, fakeRawSocket)
+    var server = new SplunkSearchServer({}, fakeRawSocket)
     
-    var splunkSearchSpy = spyOn(splunkSocket, 'runSplunkSearch').andCallFake(function() {return {}})
+    var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
     var fakeClient = new FakeClient()
     fakeRawSocket.connection(fakeClient)
@@ -81,9 +81,9 @@ describe('splunk server socket', function(){
 
   it('disconnects the client when the search is done', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var splunkSocket = new SplunkServerSocket({}, fakeRawSocket)
+    var server = new SplunkSearchServer({}, fakeRawSocket)
     
-    var splunkSearchSpy = spyOn(splunkSocket, 'runSplunkSearch').andCallFake(function() {return {}})
+    var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
     var fakeClient = new FakeClient()
     fakeRawSocket.connection(fakeClient)
