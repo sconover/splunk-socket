@@ -1,6 +1,6 @@
 var fakeHttpFactory = require('./fake_http').fakeHttpFactory
 var ApiClient = require('../../lib/splunk-socket/search/api-client')
-var SplunkSearchJob = require('../../lib/splunk-socket/search/job')
+var Job = require('../../lib/splunk-socket/search/job')
 
 describe('splunk search job', function(){
   beforeEach(function(){
@@ -17,7 +17,7 @@ describe('splunk search job', function(){
     it('creates a job', function(){
       var apiClientSpy = spyOn(this.apiClient, 'post').andCallFake(function() {})
     
-      var job = new SplunkSearchJob(this.apiClient, {search:"source=foo | head 1"})
+      var job = new Job(this.apiClient, {search:"source=foo | head 1"})
       job.create(function(){})
 
       expect(apiClientSpy.mostRecentCall.args[0]).toEqual('/services/search/jobs')
@@ -31,7 +31,7 @@ describe('splunk search job', function(){
       it('makes a call to get results for the job', function(){
         var apiClientSpy = spyOn(this.apiClient, 'get').andCallFake(function() {})
     
-        var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+        var job = new Job(this.apiClient, {search:"foo"})
         job._jobId = "1234.567"    
         job.fetchJsonResultsForJob(function(){}, function(){})
 
@@ -41,7 +41,7 @@ describe('splunk search job', function(){
       it('makes a call with the incremented offset to get more results', function(){
         var apiClientSpy = spyOn(this.apiClient, 'get').andCallFake(function() {})
     
-        var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+        var job = new Job(this.apiClient, {search:"foo"})
         job._jobId = "1234.567"    
         job.fetchJsonResultsForJob(function(){}, function(){}, 7)
 
@@ -52,7 +52,7 @@ describe('splunk search job', function(){
     
     describe('getting results', function(){
       it("returns next results, calls back. not all results have arrived yet.", function(){
-        var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+        var job = new Job(this.apiClient, {search:"foo"})
         job.checkWhetherWeHaveAllResults = function(offsetNotImportant, allResultsCallback){
           allResultsCallback(false)
         }
@@ -67,7 +67,7 @@ describe('splunk search job', function(){
             
           })
     
-        var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+        var job = new Job(this.apiClient, {search:"foo"})
         job._jobId = "1234.567"    
         job.fetchJsonResultsForJob(function(results){
           expect(results).toEqual([{a:"101",b:"102"}, {a:"201",b:"202"}])
@@ -85,7 +85,7 @@ describe('splunk search job', function(){
   describe('checking whether we have all the results for an existing search job', function(){
     it('requests job status', function(){
       var apiClientSpy = spyOn(this.apiClient, 'get').andCallFake(function() {})
-      var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+      var job = new Job(this.apiClient, {search:"foo"})
       job._jobId = "1234.567"    
       job.checkWhetherWeHaveAllResults(7, function(){})
       
@@ -98,7 +98,7 @@ describe('splunk search job', function(){
           andCallFake(function(url, responseBodyCallback) {
             responseBodyCallback("<foo>\n<s:key name=\"isDone\">0</s:key>\n<s:key name=\"resultCount\">5</s:key>\n</foo>")
           })
-      var job = new SplunkSearchJob(this.apiClient, {search:"foo"})
+      var job = new Job(this.apiClient, {search:"foo"})
       job._jobId = "1234.567"    
       job.checkWhetherWeHaveAllResults(7, 
         function(weHaveAllResults) { expect(weHaveAllResults).toEqual(false) })
@@ -110,7 +110,7 @@ describe('splunk search job', function(){
           andCallFake(function(url, responseBodyCallback) {
             responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
           })
-      var job = new SplunkSearchJob(this.apiClient, {})  
+      var job = new Job(this.apiClient, {})  
       job.checkWhetherWeHaveAllResults(7, 
         function(weHaveAllResults) { expect(weHaveAllResults).toEqual(false) })
     })
@@ -121,7 +121,7 @@ describe('splunk search job', function(){
           andCallFake(function(url, responseBodyCallback) {
             responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
           })
-      var job = new SplunkSearchJob(this.apiClient, {})
+      var job = new Job(this.apiClient, {})
       job.checkWhetherWeHaveAllResults(7, 
         function(weHaveAllResults) { expect(weHaveAllResults).toEqual(true) })
     })
