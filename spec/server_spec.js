@@ -79,6 +79,26 @@ describe('splunk search server', function(){
 
   })
 
+  it('sends error messages to the client if an error occurrs', function(){
+    var fakeRawSocket = new FakeRawSocket()
+    var server = new Server({}, fakeRawSocket)
+    
+    var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
+    
+    var fakeClient = new FakeClient()
+    fakeRawSocket.connection(fakeClient)
+    
+    fakeClient.message(JSON.stringify({search: "source=cars | head zzz"}))
+    
+    var onErrorCallback = splunkSearchSpy.mostRecentCall.args[3]
+    onErrorCallback(['Sorry try again'])
+    
+    expect(fakeClient.sent).toEqual([
+      {errors:['Sorry try again']}
+    ])    
+  })
+  
+
   it('disconnects the client when the search is done', function(){
     var fakeRawSocket = new FakeRawSocket()
     var server = new Server({}, fakeRawSocket)
