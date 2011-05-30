@@ -135,6 +135,18 @@ describe('splunk search job', function(){
         }
       })
     })
+
+    it('handles empty elements', function(){
+      var status = Job.parseStatus(
+        '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+          '<s:dict>' +
+            '<s:key name="empty"></s:key>' +
+          '</s:dict>' +
+        '</foo>'
+      )
+      
+      expect(status).toEqual({empty:null})
+    })
   })
   
   describe('fetching results for an existing search job', function(){
