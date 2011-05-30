@@ -62,7 +62,7 @@ describe('splunk search job', function(){
       expect(status).toEqual({isDone:'1', resultCount:'2'})
     })
 
-    xit('parses sub dicts as js objects', function(){
+    it('parses sub dicts as js objects', function(){
       var status = Job.parseStatus(
         '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
           '<s:dict>' +
