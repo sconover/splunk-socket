@@ -86,7 +86,7 @@ describe('splunk search job', function(){
             if (path.indexOf("results")>=0) {
               responseBodyCallback('[{"a":"101","b":"102"}, {"a":"201","b":"202"}]')
             } else {
-              responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">2</s:key>\n</foo>")
+              responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">2</s:key>\n</foo>")
             }
             
           })
@@ -120,7 +120,7 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo>\n<s:key name=\"isDone\">0</s:key>\n<s:key name=\"resultCount\">5</s:key>\n</foo>")
+            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">0</s:key>\n<s:key name=\"resultCount\">5</s:key>\n</foo>")
           })
       var job = new Job(this.apiClient, {search:"foo"})
       job._jobId = "1234.567"    
@@ -132,7 +132,7 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
+            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
           })
       var job = new Job(this.apiClient, {})  
       job.checkWhetherWeHaveAllResults(7, 
@@ -143,7 +143,7 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
+            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
           })
       var job = new Job(this.apiClient, {})
       job.checkWhetherWeHaveAllResults(7, 

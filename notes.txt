@@ -20,8 +20,11 @@ splunk search
 extract "extend"
   use options?
 
+jshint
+
 get jasmine out of vendor. claim the node js name and do a proper npm dependency
 
-
+dependency into https://github.com/azuisleet/libxmljs
+ ...vendor it? not sure.
 
 
