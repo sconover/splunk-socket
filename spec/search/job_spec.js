@@ -123,11 +123,12 @@ describe('splunk search job', function(){
       })
     })
 
-    it('parses sub dicts and lists (integration)', function(){
+    it('parses sub dicts and lists (integration, with text elements)', function(){
       var status = Job.parseStatus(
         '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
           '<s:dict>' +
             '<s:key name="messages">' +
+              '   ' +
               '<s:dict>' +
                 '<s:key name="fatal">' +
                   '<s:list>' +
@@ -135,9 +136,9 @@ describe('splunk search job', function(){
                   '</s:list>' +
                 '</s:key>' +
                 '<s:key name="error">' +
-                  '<s:list>' +
+                  '<s:list>  ' +
                     '<s:item>Some error</s:item>' +
-                  '</s:list>' +
+                  '  </s:list>' +
                 '</s:key>' +
               '</s:dict>' +
             '</s:key>' +
