@@ -84,6 +84,27 @@ describe('splunk search job', function(){
         }
       })
     })
+
+    it('parses sub dicts as js objects', function(){
+      var status = Job.parseStatus(
+        '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+          '<s:dict>' +
+            '<s:key name="someKey">' +
+               '<s:list>' +
+                 '<s:item>First item</s:item>' +
+                 '<s:item>Second item</s:item>' +
+               '</s:list>' +
+            '</s:key>' +
+          '</s:dict>' +
+        '</foo>'
+      )
+      expect(status).toEqual({
+        someKey:[
+          'First item',
+          'Second item'
+        ]
+      })
+    })
   })
   
   describe('fetching results for an existing search job', function(){
