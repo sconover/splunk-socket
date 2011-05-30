@@ -106,6 +106,23 @@ describe('splunk search job', function(){
       })
     })
 
+    it('strips leading and trailing whitespace', function(){
+      var status = Job.parseStatus(
+        '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+          '<s:dict>' +
+            '<s:key name="someKey">' +
+               '<s:list>' +
+                 "<s:item>\n\n\tFirst\n item\n\t   \n</s:item>" +
+               '</s:list>' +
+            '</s:key>' +
+          '</s:dict>' +
+        '</foo>'
+      )
+      expect(status).toEqual({
+        someKey:["First\n item"]
+      })
+    })
+
     it('parses sub dicts and lists (integration)', function(){
       var status = Job.parseStatus(
         '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
