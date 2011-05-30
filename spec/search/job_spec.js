@@ -105,6 +105,36 @@ describe('splunk search job', function(){
         ]
       })
     })
+
+    it('parses sub dicts and lists (integration)', function(){
+      var status = Job.parseStatus(
+        '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+          '<s:dict>' +
+            '<s:key name="messages">' +
+              '<s:dict>' +
+                '<s:key name="fatal">' +
+                  '<s:list>' +
+                    '<s:item>Something fatal</s:item>' +
+                  '</s:list>' +
+                '</s:key>' +
+                '<s:key name="error">' +
+                  '<s:list>' +
+                    '<s:item>Some error</s:item>' +
+                  '</s:list>' +
+                '</s:key>' +
+              '</s:dict>' +
+            '</s:key>' +
+          '</s:dict>' +
+        '</foo>'
+      )
+      
+      expect(status).toEqual({
+        messages:{
+          fatal:['Something fatal'],
+          error:['Some error']
+        }
+      })
+    })
   })
   
   describe('fetching results for an existing search job', function(){
