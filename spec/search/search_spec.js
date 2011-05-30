@@ -21,7 +21,7 @@ describe('splunk search', function(){
     
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
       push(jobResponseXml({isDone:1, resultCount:3}))
-    
+      
     var allResults = [],
         done = false
     new Search({

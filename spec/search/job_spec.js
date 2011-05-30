@@ -61,6 +61,29 @@ describe('splunk search job', function(){
       )
       expect(status).toEqual({isDone:'1', resultCount:'2'})
     })
+
+    xit('parses sub dicts as js objects', function(){
+      var status = Job.parseStatus(
+        '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+          '<s:dict>' +
+            '<s:key name="request">' +
+              '<s:dict>' +
+                '<s:key name="max_count">100</s:key>' +
+                '<s:key name="required_field_list">*</s:key>' +
+                '<s:key name="search">search source=cars | head zzz</s:key>' +
+              '</s:dict>' +
+            '</s:key>' +
+          '</s:dict>' +
+        '</foo>'
+      )
+      expect(status).toEqual({
+        request:{
+          max_count:'100',
+          required_field_list:'*',
+          search:'search source=cars | head zzz'
+        }
+      })
+    })
   })
   
   describe('fetching results for an existing search job', function(){
@@ -100,7 +123,14 @@ describe('splunk search job', function(){
             if (path.indexOf("results")>=0) {
               responseBodyCallback('[{"a":"101","b":"102"}, {"a":"201","b":"202"}]')
             } else {
-              responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">2</s:key>\n</foo>")
+              responseBodyCallback(
+                '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+                  '<s:dict>' +
+                    '<s:key name="isDone">1</s:key>' +
+                    '<s:key name="resultCount">2</s:key>' +
+                  '</s:dict>' +
+                '</foo>'
+              )
             }
             
           })
@@ -163,7 +193,14 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">0</s:key>\n<s:key name=\"resultCount\">5</s:key>\n</foo>")
+            responseBodyCallback(
+              '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+                '<s:dict>' +
+                  '<s:key name="isDone">0</s:key>' +
+                  '<s:key name="resultCount">5</s:key>' +
+                '</s:dict>' +
+              '</foo>'
+            )
           })
       var job = new Job(this.apiClient, {search:"foo"})
       job._jobId = "1234.567"    
@@ -175,7 +212,14 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">9</s:key>\n</foo>")
+            responseBodyCallback(
+              '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+                '<s:dict>' +
+                  '<s:key name="isDone">1</s:key>' +
+                  '<s:key name="resultCount">9</s:key>' +
+                '</s:dict>' +
+              '</foo>'
+            )
           })
       var job = new Job(this.apiClient, {})  
       job.checkWhetherWeHaveAllResults(7, 
@@ -186,7 +230,14 @@ describe('splunk search job', function(){
       var apiClientSpy = 
         spyOn(this.apiClient, 'get').
           andCallFake(function(url, responseBodyCallback) {
-            responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">7</s:key>\n</foo>")
+            responseBodyCallback(
+              '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+                '<s:dict>' +
+                  '<s:key name="isDone">1</s:key>' +
+                  '<s:key name="resultCount">7</s:key>' +
+                '</s:dict>' +
+              '</foo>'
+            )
           })
       var job = new Job(this.apiClient, {})
       job.checkWhetherWeHaveAllResults(7, 
