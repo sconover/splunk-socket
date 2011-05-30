@@ -1,4 +1,4 @@
-var Server = require('../lib/splunk-socket/server')
+var Handler = require('../lib/splunk-socket/handler')
 
 describe('splunk search server', function(){
 
@@ -27,7 +27,7 @@ describe('splunk search server', function(){
   it('executes a splunk search based on the json-serialized search received from the client', function(){
     var fakeRawSocket = new FakeRawSocket()
     var server = 
-      new Server({
+      new Handler({
         user: 'admin',
         password: 'pass',
         host: 'splunk.example.com',
@@ -54,7 +54,7 @@ describe('splunk search server', function(){
   
   it('sends results of the search to the client as they come in', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var server = new Server({}, fakeRawSocket)
+    var server = new Handler({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
@@ -81,7 +81,7 @@ describe('splunk search server', function(){
 
   it('sends error messages to the client if an error occurrs', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var server = new Server({}, fakeRawSocket)
+    var server = new Handler({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
@@ -101,7 +101,7 @@ describe('splunk search server', function(){
 
   it('disconnects the client when the search is done', function(){
     var fakeRawSocket = new FakeRawSocket()
-    var server = new Server({}, fakeRawSocket)
+    var server = new Handler({}, fakeRawSocket)
     
     var splunkSearchSpy = spyOn(server, 'runSplunkSearch').andCallFake(function() {return {}})
     
