@@ -15,12 +15,14 @@ describe('splunk search', function(){
     
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'] = []
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
-      push(jobResponseXml({isDone:0, resultCount:2}))
+      push(jobResponseXml({isDone:'0', resultCount:'2', isFailed:'0'}))
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
+      push(jobResponseXml({isDone:'0', resultCount:'2', isFailed:'0'}))
 
     loadResultsForOffset(this.fakeHttp, 2, [{color:'blue'}])
     
     this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
-      push(jobResponseXml({isDone:1, resultCount:3}))
+      push(jobResponseXml({isDone:'1', resultCount:'3', isFailed:'0'}))
       
     var allResults = [],
         done = false
@@ -38,6 +40,54 @@ describe('splunk search', function(){
     
     expect(allResults).toEqual([{color:'red'}, {color:'green'}, {color:'blue'}])
     expect(done).toEqual(true)
+  })
+  
+  it('calls back with error messages when there are errors in the search', function(){
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs'] = 
+      "<?xml version='1.0' encoding='UTF-8'?>\n" +
+      "<response><sid>1234.567</sid></response>"
+    
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'] = []
+    this.fakeHttp.urlToResponse['http://splunk.example.com:8089/services/search/jobs/1234.567'].
+      push(
+      '<foo xmlns:s="http://dev.splunk.com/ns/rest">' +
+        '<s:dict>' +
+          '<s:key name="isFailed">1</s:key>' +
+          '<s:key name="messages">' +
+            '<s:dict>' +
+              '<s:key name="fatal">' +
+                '<s:list>' +
+                  '<s:item>Something fatal</s:item>' +
+                '</s:list>' +
+              '</s:key>' +
+              '<s:key name="error">' +
+                '<s:list>' +
+                  '<s:item>The search was bad</s:item>' +
+                  '<s:item>You need to be nicer</s:item>' +
+                '</s:list>' +
+              '</s:key>' +
+            '</s:dict>' +
+          '</s:key>' +
+        '</s:dict>' +
+      '</foo>'
+      )
+
+    var allErrors = [],
+        done = false
+    new Search({
+      http: this.fakeHttp,
+      user: 'admin',
+      password: 'pass',
+      host: 'splunk.example.com',
+      port: 8089,
+      search: "source=cars color=red | head 10"
+    }, function(search){
+      search.onNextResults(  function(results)  {})
+      search.onDone(         function()         { done = true })
+      search.onError(        function(messages) { allErrors.push.apply(allErrors, messages) })
+    }).run()
+    
+    expect(allErrors).toEqual(['The search was bad', 'You need to be nicer'])
   })
   
   

@@ -197,33 +197,6 @@ describe('splunk search job', function(){
       })
     })
     
-    // describe('handling errors due to bad search requests', function(){
-    //   it("returns next results, calls back. not all results have arrived yet.", function(){
-    //     var job = new Job(this.apiClient, {search:"foo"})
-    //     job.checkWhetherWeHaveAllResults = function(offsetNotImportant, allResultsCallback){
-    //       allResultsCallback(false)
-    //     }
-    // 
-    //     var apiClientSpy = spyOn(this.apiClient, 'get').
-    //       andCallFake(function(path, responseBodyCallback) {
-    //         if (path.indexOf("results")>=0) {
-    //           responseBodyCallback('[{"a":"101","b":"102"}, {"a":"201","b":"202"}]')
-    //         } else {
-    //           responseBodyCallback("<foo xmlns:s='http://dev.splunk.com/ns/rest'>\n<s:key name=\"isDone\">1</s:key>\n<s:key name=\"resultCount\">2</s:key>\n</foo>")
-    //         }
-    //         
-    //       })
-    // 
-    //     var job = new Job(this.apiClient, {search:"foo"})
-    //     job._jobId = "1234.567"    
-    //     job.fetchJsonResultsForJob(function(results){
-    //       expect(results).toEqual([{a:"101",b:"102"}, {a:"201",b:"202"}])
-    //     }, function(done){
-    //       expect(done).toEqual(true)
-    //     }, 
-    //     0)
-    //   })
-    // })
     // <?xml version='1.0' encoding='UTF-8'?>
     // <response><messages><msg type='FATAL'>Error in &apos;head&apos; command: The argument must be a positive number or a boolean expression.</msg></messages></response>
     //todo: fake out checkWhetherWeHaveAllResults, 
